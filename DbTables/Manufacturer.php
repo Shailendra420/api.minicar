@@ -15,18 +15,21 @@ class Manufacturer {
         $this->conn = $db;
     }
     
-    function manufacturerExists($manufac_name){
+    function manufacturerExists($conn, $manufac_name){
         // $this->conn = connectvar();
         // mysql_select_db("mydatabase", $con);
-        $querycheck = $this->conn->query('SELECT * FROM ' . $this->table);
+        $querycheck = $conn->query('SELECT manufacturer_name FROM ' . $this->table);
         while($row = $querycheck->fetch(PDO::FETCH_ASSOC)) {
+            // extract($row);
             if($row['manufacturer_name'] === $manufac_name) {
                 echo json_encode(
                     array("message" => "Manufacturer exists")
                 );
                 return false;
             }
+            
         }
+        return true;
         
     }
 
@@ -41,12 +44,14 @@ class Manufacturer {
             $stmt = $this->conn->prepare($query);
 
             $this->manufacturer_name = htmlspecialchars(strip_tags($this->manufacturer_name));
-            $this->manufacturerExists($this->manufacturer_name);
-            $stmt->bindParam(':manufacturer_name', $this->manufacturer_name);
+            if($this->manufacturerExists($this->conn, $this->manufacturer_name)) {
+                $stmt->bindParam(':manufacturer_name', $this->manufacturer_name);
 
-            if($stmt->execute()) {
-                return true;
+                if($stmt->execute()) {
+                    return true;
+                }
             }
+            
 
             print_f("Error: %s.\n", $stmt->error);
 
